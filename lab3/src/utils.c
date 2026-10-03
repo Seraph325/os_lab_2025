@@ -8,3 +8,9 @@ void GenerateArray(int *array, unsigned int array_size, unsigned int seed) {
     array[i] = rand();
   }
 }
+
+void test1(int *array, unsigned int array_size, unsigned int seed) {
+  for (int i = 0; i < array_size; i++) {
+    array[i] = i;
+  }
+}

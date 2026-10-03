@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <sys/time.h>
@@ -14,6 +15,8 @@
 
 #include "find_min_max.h"
 #include "utils.h"
+
+int* break_to_parts(int value, int size);
 
 int main(int argc, char **argv) {
   int seed = -1;
@@ -40,16 +43,27 @@ int main(int argc, char **argv) {
         switch (option_index) {
           case 0:
             seed = atoi(optarg);
+            if (seed <= 0) {
+              srand(time(NULL));
+              seed = rand();
+            }
             // your code here
             // error handling
             break;
           case 1:
             array_size = atoi(optarg);
+            if (array_size <= 0) {
+              srand(time(NULL));
+              array_size = rand() % 100;
+            }
             // your code here
             // error handling
             break;
           case 2:
             pnum = atoi(optarg);
+            if (pnum <= 0) {
+              pnum = 4;
+            }
             // your code here
             // error handling
             break;
@@ -73,6 +87,15 @@ int main(int argc, char **argv) {
     }
   }
 
+  if (pnum > array_size) {
+    pnum = array_size > 8 ? 8 : array_size;
+  }
+
+  int* parts = break_to_parts(array_size, pnum);
+
+  // printf("%d %d %d %d\n", seed, array_size, pnum, with_files);
+  // return 0;
+
   if (optind < argc) {
     printf("Has at least one no option argument\n");
     return 1;
@@ -86,7 +109,14 @@ int main(int argc, char **argv) {
 
   int *array = malloc(sizeof(int) * array_size);
   GenerateArray(array, array_size, seed);
+  //test1(array, array_size, seed);
   int active_child_processes = 0;
+  int fd[2];
+  if (!with_files && pipe(fd) == -1) {
+    printf("Failed to init pipe\n");
+    return 1;
+  }
+  int current = 0;
 
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
@@ -100,12 +130,22 @@ int main(int argc, char **argv) {
         // child process
 
         // parallel somehow
+        struct MinMax min_max = GetMinMax(array, current, *(parts + i) + current);
+        int* min_a_max = malloc(sizeof(int) * 2);
+        min_a_max[0] = min_max.min;
+        min_a_max[1] = min_max.max;
 
         if (with_files) {
-          // use files here
+          FILE* file;
+          file = fopen("data.txt", "a");
+          fwrite(min_a_max, sizeof(int), 2, file);
+          fclose(file);
         } else {
-          // use pipe here
+          close(fd[0]);
+          write(fd[1], min_a_max, sizeof(int) * 2);
+          close(fd[1]);
         }
+
         return 0;
       }
 
@@ -113,10 +153,11 @@ int main(int argc, char **argv) {
       printf("Fork failed!\n");
       return 1;
     }
+    current += *(parts + i);
   }
 
   while (active_child_processes > 0) {
-    // your code here
+    wait(NULL);
 
     active_child_processes -= 1;
   }
@@ -125,19 +166,33 @@ int main(int argc, char **argv) {
   min_max.min = INT_MAX;
   min_max.max = INT_MIN;
 
+  FILE* file;
+  file = fopen("data.txt", "r");
+
   for (int i = 0; i < pnum; i++) {
     int min = INT_MAX;
     int max = INT_MIN;
+    
+    int* min_a_max = malloc(sizeof(int) * 2); 
 
     if (with_files) {
-      // read from files
+      fread(min_a_max, sizeof(int), 2, file);
     } else {
-      // read from pipes
+      read(fd[0], min_a_max, sizeof(int) * 2);
+    }
+    if (min_a_max[0] < min) {
+      min = min_a_max[0];
+    }
+    if (min_a_max[1] > max) {
+      max = min_a_max[1];
     }
 
     if (min < min_max.min) min_max.min = min;
     if (max > min_max.max) min_max.max = max;
   }
+
+  remove("data.txt");
+  fclose(file);
 
   struct timeval finish_time;
   gettimeofday(&finish_time, NULL);
@@ -153,3 +208,15 @@ int main(int argc, char **argv) {
   fflush(NULL);
   return 0;
 }
+
+int* break_to_parts(int value, int size) {
+  int* a = malloc(size * sizeof(int));
+  int base_value = value / size;          
+  int remainder = value % size; 
+  for (int i = 0; i < size; i++) {
+    *(a + i) = base_value + (i < remainder ? 1 : 0);
+  }
+
+  return a;
+}
+
