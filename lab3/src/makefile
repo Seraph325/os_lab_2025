@@ -1,6 +1,11 @@
 CC=gcc
 CFLAGS=-I.
 
+all: parallel
+
+parallel: parallel_min_max sequential_min_max
+	./parallel_min_max --seed=-1 --pnum=4 --array_size=100
+
 sequential_min_max : utils.o find_min_max.o utils.h find_min_max.h
 	$(CC) -o sequential_min_max find_min_max.o utils.o sequential_min_max.c $(CFLAGS)
 

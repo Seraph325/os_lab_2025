@@ -118,6 +118,17 @@ int main(int argc, char **argv) {
   }
   int current = 0;
 
+  pid_t pid = fork();
+  if (pid == 0) {
+    char seed_str[32];
+    char size_str[32];
+    snprintf(seed_str, sizeof(seed_str), "%d", seed);
+    snprintf(size_str, sizeof(size_str), "%d", array_size);
+
+    execl("./sequential_min_max", "./sequential_min_max", seed_str, size_str, (char *)NULL);
+    return 0;
+  }
+
   struct timeval start_time;
   gettimeofday(&start_time, NULL);
 
@@ -167,7 +178,9 @@ int main(int argc, char **argv) {
   min_max.max = INT_MIN;
 
   FILE* file;
-  file = fopen("data.txt", "r");
+  if (with_files) {
+    file = fopen("data.txt", "r");
+  }
 
   for (int i = 0; i < pnum; i++) {
     int min = INT_MAX;
@@ -191,8 +204,10 @@ int main(int argc, char **argv) {
     if (max > min_max.max) min_max.max = max;
   }
 
-  remove("data.txt");
-  fclose(file);
+  if (with_files) {
+    remove("data.txt");
+    fclose(file);
+  }
 
   struct timeval finish_time;
   gettimeofday(&finish_time, NULL);
