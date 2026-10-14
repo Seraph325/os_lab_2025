@@ -1,0 +1,28 @@
+CC=gcc
+CFLAGS=-I.
+
+all: start
+
+launch: create_bin start
+
+start: parallel_sum
+	./bin/parallel_sum --threads_num "4" --array_size "100000" --seed "0"
+
+parallel_sum: parallel_sum.o utils.h static_lib
+	$(CC) bin/parallel_sum.o -L. -lgenarr -o bin/parallel_sum $(CFLAGS)
+
+parallel_sum.o:
+	$(CC) -c parallel_sum.c -o bin/parallel_sum.o $(CFLAGS)
+
+
+static_lib: utils.o
+	ar rcs libgenarr.a bin/utils.o
+
+utils.o: utils.h
+	$(CC) -o bin/utils.o -c utils.c $(CFLAGS)
+
+create_bin:
+	mkdir bin/
+
+clean :
+	rm -rf bin/

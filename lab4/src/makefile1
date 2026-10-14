@@ -1,0 +1,24 @@
+CC=gcc
+CFLAGS=-I.
+
+all: start
+
+launch: create_bin start
+
+start: parallel_min_max
+	./bin/parallel_min_max --seed=-1 --pnum=4 --timeout=1 --array_size=1000000
+
+parallel_min_max : utils.o find_min_max.o utils.h find_min_max.h
+	$(CC) -o bin/parallel_min_max bin/utils.o bin/find_min_max.o parallel_min_max.c $(CFLAGS)
+
+utils.o : utils.h
+	$(CC) -o bin/utils.o -c utils.c $(CFLAGS)
+
+find_min_max.o : utils.h find_min_max.h
+	$(CC) -o bin/find_min_max.o -c find_min_max.c $(CFLAGS)
+
+create_bin:
+	mkdir bin/
+
+clean :
+	rm -rf bin/
