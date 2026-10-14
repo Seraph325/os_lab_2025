@@ -1,9 +1,12 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/time.h>
 
 #include <getopt.h>
 #include <pthread.h>
+
+#include "utils.h"
 
 int* break_to_parts(int value, int size);
 
@@ -16,7 +19,7 @@ struct SumArgs {
 uint64_t Sum(const struct SumArgs *args) {
   uint64_t sum = 0;
   for (int i = args->begin; i < args->end; i++) {
-    sum += args->array[i];
+    sum += (uint64_t) args->array[i];
   }
   return sum;
 }
@@ -118,6 +121,9 @@ int main(int argc, char **argv) {
   pthread_t *threads = malloc(sizeof(pthread_t) * threads_num);
   struct SumArgs *args = malloc(sizeof(struct SumArgs) * threads_num);
 
+  struct timeval start_time;
+  gettimeofday(&start_time, NULL);
+
   for (uint32_t i = 0; i < threads_num; i++) {
     args[i].array = array;
     args[i].begin = current_part;
@@ -138,8 +144,15 @@ int main(int argc, char **argv) {
     total_sum += sum;
   }
 
+  struct timeval finish_time;
+  gettimeofday(&finish_time, NULL);
+
+  double elapsed_time = (finish_time.tv_sec - start_time.tv_sec) * 1000.0;
+  elapsed_time += (finish_time.tv_usec - start_time.tv_usec) / 1000.0;
+
   free(array);
-  printf("Total: %d\n", total_sum);
+  printf("Total: %llu\n", (long long unsigned) total_sum);
+  printf("Elapsed time: %fms\n", elapsed_time);
   return 0;
 }
 
