@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run
+
+run: mutex
+	./bin/mutex
+
+mutex: create_bin
+	$(CC) mutex.c -o bin/mutex
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/

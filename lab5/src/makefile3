@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run
+
+run: deadlock
+	./bin/deadlock
+
+deadlock: create_bin
+	$(CC) deadlock.c -o bin/deadlock
+
+create_bin:
+	mkdir -p bin/
+
+clean:
+	rm -rf bin/

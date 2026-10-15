@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run
+
+run: fact
+	./bin/fact --k=20 --pnum=3 --mod=23
+
+fact: create_bin
+	$(CC) fact.c -o bin/fact
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/
