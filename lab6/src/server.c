@@ -13,6 +13,8 @@
 
 #include "pthread.h"
 
+int* break_to_parts(int value, int size);
+
 struct FactorialArgs {
   uint64_t begin;
   uint64_t end;
@@ -33,16 +35,19 @@ uint64_t MultModulo(uint64_t a, uint64_t b, uint64_t mod) {
 }
 
 uint64_t Factorial(const struct FactorialArgs *args) {
+
   uint64_t ans = 1;
 
-  // TODO: your code here
+  for (int i = args->begin + 1; i <= args->end; i++) {
+    ans *= i;
+  }
 
   return ans;
 }
 
 void *ThreadFactorial(void *args) {
   struct FactorialArgs *fargs = (struct FactorialArgs *)args;
-  return (void *)(uint64_t *)Factorial(fargs);
+  return ((void *)(uint64_t *)Factorial(fargs));
 }
 
 int main(int argc, char **argv) {
@@ -145,8 +150,6 @@ int main(int argc, char **argv) {
         break;
       }
 
-      pthread_t threads[tnum];
-
       uint64_t begin = 0;
       uint64_t end = 0;
       uint64_t mod = 0;
@@ -156,12 +159,22 @@ int main(int argc, char **argv) {
 
       fprintf(stdout, "Receive: %llu %llu %llu\n", begin, end, mod);
 
-      struct FactorialArgs args[tnum];
-      for (uint32_t i = 0; i < tnum; i++) {
+      int tnum_current = tnum > end - begin ? end - begin : tnum;
+
+      int* parts = break_to_parts(end - begin, tnum_current);
+
+      pthread_t* threads = malloc(sizeof(pthread_t) * tnum_current);
+
+      uint64_t current = begin;
+
+      struct FactorialArgs args[tnum_current];
+      for (uint32_t i = 0; i < tnum_current; i++) {
         // TODO: parallel somehow
-        args[i].begin = 1;
-        args[i].end = 1;
+        args[i].begin = current;
+        args[i].end = current + parts[i];
         args[i].mod = mod;
+
+        current += parts[i];
 
         if (pthread_create(&threads[i], NULL, ThreadFactorial,
                            (void *)&args[i])) {
@@ -171,10 +184,10 @@ int main(int argc, char **argv) {
       }
 
       uint64_t total = 1;
-      for (uint32_t i = 0; i < tnum; i++) {
+      for (uint32_t i = 0; i < tnum_current; i++) {
         uint64_t result = 0;
         pthread_join(threads[i], (void **)&result);
-        total = MultModulo(total, result, mod);
+        total *= result;//MultModulo(total, result, mod);
       }
 
       printf("Total: %llu\n", total);
@@ -193,4 +206,15 @@ int main(int argc, char **argv) {
   }
 
   return 0;
+}
+
+int* break_to_parts(int value, int size) {
+  int* a = malloc(size * sizeof(int));
+  int base_value = value / size;          
+  int remainder = value % size; 
+  for (int i = 0; i < size; i++) {
+    *(a + i) = base_value + (i < remainder ? 1 : 0);
+  }
+
+  return a;
 }
