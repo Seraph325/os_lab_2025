@@ -1,0 +1,15 @@
+CC=gcc
+
+all: static_lib
+
+static_lib: parts.o
+	ar rcs libparts.a bin/parts.o
+
+parts.o: parts.c
+	$(CC) -o bin/parts.o -c parts.c
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf libparts.a

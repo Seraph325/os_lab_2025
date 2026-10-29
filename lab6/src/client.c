@@ -12,9 +12,11 @@
 #include <sys/socket.h>
 #include <sys/types.h>
 
+#include "parts.h"
+
 void read_addr_till(FILE* file, char* ptr, char till);
 void clear_buffer(char* buffer);
-int* break_to_parts(int value, int size);
+//int* break_to_parts(int value, int size);
 
 struct Server {
   char ip[255];
@@ -234,16 +236,3 @@ void clear_buffer(char* buffer) {
     buffer_copy++;
   }
 }
-
-int* break_to_parts(int value, int size) {
-  int* a = malloc(size * sizeof(int));
-  int base_value = value / size;          
-  int remainder = value % size; 
-  for (int i = 0; i < size; i++) {
-    *(a + i) = base_value + (i < remainder ? 1 : 0);
-  }
-
-  return a;
-}
-
-

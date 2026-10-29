@@ -12,8 +12,9 @@
 #include <sys/types.h>
 
 #include "pthread.h"
+#include "parts.h"
 
-int* break_to_parts(int value, int size);
+//int* break_to_parts(int value, int size);
 
 struct FactorialArgs {
   uint64_t begin;
@@ -206,15 +207,4 @@ int main(int argc, char **argv) {
   }
 
   return 0;
-}
-
-int* break_to_parts(int value, int size) {
-  int* a = malloc(size * sizeof(int));
-  int base_value = value / size;          
-  int remainder = value % size; 
-  for (int i = 0; i < size; i++) {
-    *(a + i) = base_value + (i < remainder ? 1 : 0);
-  }
-
-  return a;
 }

@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run_server
+
+run_server: create_bin server
+	./bin/server2 --port 20002 --tnum 2
+
+server: server.c libparts.a
+	$(CC) server.c -L. -lparts -o ./bin/server2
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/server2

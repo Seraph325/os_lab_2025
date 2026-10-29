@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run_client
+
+run_client: create_bin client list.txt
+	./bin/client --k 6 --mod 5 --servers ./list.txt
+
+client: client.c libparts.a
+	$(CC) client.c -L. -lparts -o ./bin/client
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/client
