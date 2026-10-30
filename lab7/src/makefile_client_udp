@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run_client
+
+run_client: create_bin client_udp
+	./bin/client_udp 127.0.0.1 --bufsize 2048 --port 20001
+
+client_udp: udpclient.c
+	$(CC) udpclient.c -o ./bin/client_udp
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/client_udp

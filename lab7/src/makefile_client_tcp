@@ -1,0 +1,15 @@
+CC=gcc
+
+all: run_client
+
+run_client: create_bin client_tcp
+	./bin/client_tcp --bufsize 2048 127.0.0.1 20001
+
+client_tcp: tcpclient.c
+	$(CC) tcpclient.c -o ./bin/client_tcp
+
+create_bin:
+	mkdir -p bin/
+
+clean :
+	rm -rf bin/client_tcp
